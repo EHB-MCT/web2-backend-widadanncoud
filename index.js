@@ -39,7 +39,7 @@ app.get('/mct', (req, res)=> {
 })
 
 //Return all challenges from database
-app.get('/challenges', async (req, res) => {
+app.get('/searchCriteria', async (req, res) => {
   try {
     //connect to the database
     await client.connect();
