@@ -26,32 +26,27 @@ const client = new MongoClient(uri, {
     useUnifiedTopology: true
 });
 
+
+
 //CRUD FUNCTIONALITY
 
 app.get('/', (req, res) => {
-    //res.send("hallo world");
     res.status(300).redirect('info.html');
-})
-
-app.get('/mct', (req, res) => {
-    res.send("hall");
 })
 
 //Return all challenges from database
 app.get('/searchCriterias', async (req, res) => {
     try {
-        //connect to the database
-        await client.connect();
-        const db = client.db("web2CP");
-        // Use the searchCriteria "web2CP"
+        await client.connect(); //connect to the database
+
+        const db = client.db("web2CP"); // Use the searchCriteria "web2CP"
         const collection = db.collection("searchCriteria");
-        // Find document
-        const data = await collection.find({}).toArray();
 
-        // Print to the console
-        console.log(data);
+        const data = await collection.find({}).toArray(); // Find document
 
+        console.log(data); // Print to the console
         res.status(200).send(data)
+
     } catch (err) { //catch an error
         console.log(err.stack);
     } finally {
@@ -59,24 +54,38 @@ app.get('/searchCriterias', async (req, res) => {
     }
 });
 
+
+
 app.post('/saveSearchCriteria', async (req, res) => {
-    if (!req.body.input || !req.body.diet || !req.body.country || !req.body.meal) {
-        res.status(400).send("You forgot to fill one or multipple cases.");
-        return
+    console.log("POST /saveSearchCriteria called");
+    console.log(req.body);
+    if (!req.body.input || !req.body.diet || !req.body.cuisine || !req.body.meal) {
+        res.status(400).json({
+            message: "You forgot to fill one or multipple cases"
+        }) //.send("You forgot to fill one or multipple cases.");
+        return;
     }
+    console.log("passed first if-statement");
 
     try {
         await client.connect(); //connect to the database
 
         const db = client.db("web2CP"); // Use the searchCriteria "web2CP"
-        const collection = db.collection("searchCriteria"); 
-    
-        const sc = await collection.findOne({input: req.body.input, diet: req.body.diet, input: req.body.cuisine, input: req.body.meal});   // Find document
-        if(sc){
-            res.status(400).send(`Bad request: searchcriteria already exists with ${req.body.input} ${req.body.diet} ${req.body.cuisine} ${req.body.meal} `)
+        const collection = db.collection("searchCriteria");
+
+        const sc = await collection.findOne({
+            input: req.body.input,
+            diet: req.body.diet,
+            input: req.body.cuisine,
+            input: req.body.meal
+        }); // Find document
+        if (sc) {
+            res.status(400).json({
+                message: `Bad request: searchcriteria already exists with ${req.body.input} ${req.body.diet} ${req.body.cuisine} ${req.body.meal} `
+            });
             return;
         }
-        
+
         let newSearchCriteria = {
             "input": req.body.input,
             "diet": req.body.diet,
@@ -84,12 +93,14 @@ app.post('/saveSearchCriteria', async (req, res) => {
             "meal": req.body.meal
         };
 
+        //const data = await collection.find({}).toArray();
+
         let insertnewSC = await collection.insertOne(newSearchCriteria); //add new searchcritearia in database
 
         // Print to the console
-        console.log(data);
+        console.log("data", insertnewSC);
 
-        res.status(200).send(data)
+        res.status(200).json(insertnewSC)
     } catch (err) { //catch an error
         console.log(err.stack);
     } finally {
@@ -101,13 +112,6 @@ app.post('/saveSearchCriteria', async (req, res) => {
     // check if body != empty
     // write to mongo
     // extra get to display preferences
-
-    res.status(404).send({
-        message: "Ej dit werkt wel"
-    })
-    res.send('jeej');
-
-
 });
 
 app.listen(port, () => {
