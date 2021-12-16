@@ -38,7 +38,7 @@ app.get('/mct', (req, res) => {
 })
 
 //Return all challenges from database
-app.get('/searchCriteria', async (req, res) => {
+app.get('/searchCriterias', async (req, res) => {
     try {
         //connect to the database
         await client.connect();
@@ -59,7 +59,7 @@ app.get('/searchCriteria', async (req, res) => {
     }
 });
 
-app.post('/searchCriteria', async (req, res) => {
+app.post('/saveSearchCriteria', async (req, res) => {
     if (!req.body.input || !req.body.diet || !req.body.country || !req.body.meal) {
         res.status(400).send("please fill everything in");
         return
@@ -76,7 +76,7 @@ app.post('/searchCriteria', async (req, res) => {
     })
     res.send('jeej');
 
-    
+
 });
 
 app.listen(port, () => {
