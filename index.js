@@ -61,8 +61,39 @@ app.get('/searchCriterias', async (req, res) => {
 
 app.post('/saveSearchCriteria', async (req, res) => {
     if (!req.body.input || !req.body.diet || !req.body.country || !req.body.meal) {
-        res.status(400).send("please fill everything in");
+        res.status(400).send("You forgot to fill one or multipple cases.");
         return
+    }
+
+    try {
+        await client.connect(); //connect to the database
+
+        const db = client.db("web2CP"); // Use the searchCriteria "web2CP"
+        const collection = db.collection("searchCriteria"); 
+    
+        const sc = await collection.findOne({input: req.body.input, diet: req.body.diet, input: req.body.cuisine, input: req.body.meal});   // Find document
+        if(sc){
+            res.status(400).send(`Bad request: searchcriteria already exists with ${req.body.input} ${req.body.diet} ${req.body.cuisine} ${req.body.meal} `)
+            return;
+        }
+        
+        let newSearchCriteria = {
+            "input": req.body.input,
+            "diet": req.body.diet,
+            "cuisine": req.body.cuisine,
+            "meal": req.body.meal
+        };
+
+        let insertnewSC = await collection.insertOne(newSearchCriteria); //add new searchcritearia in database
+
+        // Print to the console
+        console.log(data);
+
+        res.status(200).send(data)
+    } catch (err) { //catch an error
+        console.log(err.stack);
+    } finally {
+        await client.close();
     }
 
     console.log('body', req.body);
