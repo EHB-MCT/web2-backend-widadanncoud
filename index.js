@@ -34,7 +34,9 @@ app.get('/', (req, res) => {
     res.status(300).redirect('info.html');
 })
 
-//Return all challenges from database
+
+
+//Return all searchcriteria from database
 app.get('/searchCriterias', async (req, res) => {
     try {
         await client.connect(); //connect to the database
@@ -56,16 +58,41 @@ app.get('/searchCriterias', async (req, res) => {
 
 
 
+//Return last searchcriteria from database
+app.get('/lastSearchCriteria', async (req, res) => {
+    try {
+        await client.connect(); //connect to the database
+
+        const db = client.db("web2CP"); // Use the searchCriteria "web2CP"
+        const collection = db.collection("searchCriteria");
+
+        const oneSearchCriteria = collection.find({}).sort({_id:-1}).limit(1) // Find document
+        
+
+        console.log(oneSearchCriteria); // Print to the console
+        res.status(200).send(oneSearchCriteria)
+
+    } catch (err) { //catch an error
+        console.log(err.stack);
+    } finally {
+        await client.close(); 
+    }
+});
+
+
+
+//Save a searchcriteria in database
 app.post('/saveSearchCriteria', async (req, res) => {
     console.log("POST /saveSearchCriteria called");
     console.log(req.body);
+
     if (!req.body.input || !req.body.diet || !req.body.cuisine || !req.body.meal) {
         res.status(400).json({
             message: "You forgot to fill one or multipple cases"
-        }) //.send("You forgot to fill one or multipple cases.");
+        })
         return;
     }
-    console.log("passed first if-statement");
+    
 
     try {
         await client.connect(); //connect to the database
@@ -78,7 +105,8 @@ app.post('/saveSearchCriteria', async (req, res) => {
             diet: req.body.diet,
             input: req.body.cuisine,
             input: req.body.meal
-        }); // Find document
+        });
+
         if (sc) {
             res.status(400).json({
                 message: `Bad request: searchcriteria already exists with ${req.body.input} ${req.body.diet} ${req.body.cuisine} ${req.body.meal} `
@@ -93,14 +121,11 @@ app.post('/saveSearchCriteria', async (req, res) => {
             "meal": req.body.meal
         };
 
-        //const data = await collection.find({}).toArray();
-
         let insertnewSC = await collection.insertOne(newSearchCriteria); //add new searchcritearia in database
 
-        // Print to the console
-        console.log("data", insertnewSC);
-
+        console.log(insertnewSC);
         res.status(200).json(insertnewSC)
+
     } catch (err) { //catch an error
         console.log(err.stack);
     } finally {
@@ -108,11 +133,9 @@ app.post('/saveSearchCriteria', async (req, res) => {
     }
 
     console.log('body', req.body);
-    //req.body.input !== ""
-    // check if body != empty
-    // write to mongo
-    // extra get to display preferences
 });
+
+
 
 app.listen(port, () => {
     console.log(`Server listening at: http://localhost:${port}`);
