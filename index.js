@@ -58,27 +58,6 @@ app.get('/searchCriterias', async (req, res) => {
 
 
 
-//Return last searchcriteria from database
-app.get('/lastSearchCriteria', async (req, res) => {
-    try {
-        await client.connect(); //connect to the database
-
-        const db = client.db("web2CP"); // Use the searchCriteria "web2CP"
-        const collection = db.collection("searchCriteria");
-
-        const oneSearchCriteria = collection.find({}).sort({_id:-1}).limit(1) // Find document
-        
-
-        console.log(oneSearchCriteria); // Print to the console
-        res.status(200).send(oneSearchCriteria)
-
-    } catch (err) { //catch an error
-        console.log(err.stack);
-    } finally {
-        await client.close(); 
-    }
-});
-
 
 
 //Save a searchcriteria in database
@@ -92,7 +71,6 @@ app.post('/saveSearchCriteria', async (req, res) => {
         })
         return;
     }
-    
 
     try {
         await client.connect(); //connect to the database
@@ -103,8 +81,9 @@ app.post('/saveSearchCriteria', async (req, res) => {
         const sc = await collection.findOne({
             input: req.body.input,
             diet: req.body.diet,
-            input: req.body.cuisine,
-            input: req.body.meal
+            cuisine: req.body.cuisine,
+            meal: req.body.meal,
+            user_id: req.body.user_id
         });
 
         if (sc) {
@@ -118,7 +97,8 @@ app.post('/saveSearchCriteria', async (req, res) => {
             "input": req.body.input,
             "diet": req.body.diet,
             "cuisine": req.body.cuisine,
-            "meal": req.body.meal
+            "meal": req.body.meal,
+            'user_id': req.body.user_id
         };
 
         let insertnewSC = await collection.insertOne(newSearchCriteria); //add new searchcritearia in database
@@ -135,6 +115,14 @@ app.post('/saveSearchCriteria', async (req, res) => {
     console.log('body', req.body);
 });
 
+
+
+
+
+//Delete a searchcriteria
+app.delete('/challenges/:id', async (req, res) => {
+    response.send('DELETE OK');
+  });
 
 
 app.listen(port, () => {
