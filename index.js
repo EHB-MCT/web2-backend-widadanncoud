@@ -86,13 +86,6 @@ app.post('/saveSearchCriteria', async (req, res) => {
             user_id: req.body.user_id
         });
 
-        if (sc) {
-            res.status(400).json({
-                message: `Bad request: searchcriteria already exists with ${req.body.input} ${req.body.diet} ${req.body.cuisine} ${req.body.meal} `
-            });
-            return;
-        }
-
         let newSearchCriteria = {
             "input": req.body.input,
             "diet": req.body.diet,
@@ -118,11 +111,36 @@ app.post('/saveSearchCriteria', async (req, res) => {
 
 
 
-
 //Delete a searchcriteria
-app.delete('/challenges/:id', async (req, res) => {
-    response.send('DELETE OK');
-  });
+app.delete('/deleteSearchCriteria/:id', async (req, res) => {
+    console.log(req.body);
+
+    try {
+        await client.connect(); //connect to the database
+
+        const db = client.db("web2CP"); // Use the searchCriteria "web2CP"
+        const collection = db.collection("searchCriteria");
+
+        const sc = await collection.deleteOne({
+            input: req.body.input,
+            diet: req.body.diet,
+            cuisine: req.body.cuisine,
+            meal: req.body.meal,
+            user_id: req.body.user_id
+        });
+
+        await collection('inventory').deleteMany({
+            status: 'user_id'
+        });
+
+    } catch (err) { //catch an error
+        console.log(err.stack);
+    } finally {
+        await client.close();
+    }
+});
+
+
 
 
 app.listen(port, () => {
